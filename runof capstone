@@ -1,0 +1,15 @@
+Creating a clean zip — excluding `.env` (contains the LLM key), `target/` (278 MB build output), `data/` (local database), and `.git/`:
+
+No `zip` utility — using Python instead:
+
+Done — `/home/ubuntu/Desktop/dEVINCAPSTONE.zip` (204 KB, 161 files).
+
+**Included:** all source, tests, resources, fixtures, policies, prompts, docs, `pom.xml`, `README.md`, `SELF_EVALUATION_REPORT.md`
+
+**Excluded (verified 0 matches):**
+- `.env` — contains your LLM gateway key
+- `target/` — 278 MB build output
+- `data/` — local H2 database
+- `.git/` — repo metadata
+
+The zip matches exactly what's on GitHub. If the recipient wants to run it, they unpack, copy `.env.example` → `.env`, set `FRAUD_LLM_API_KEY`, and `mvn spring-boot:run` (or `java -jar` after `mvn package`).
