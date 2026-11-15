@@ -1,0 +1,40 @@
+Let me check the exact disposition options and how route selection works in the review flow.
+
+
+| You select | Route recorded | Resulting status |
+|---|---|---|
+| `ACCEPT_RECOMMENDATION` | whatever the agent recommended | `ROUTED` |
+| `REROUTE` | the route you pick in the dropdown — **must differ from the recommended one** | `ROUTED` |
+| `ESCALATE` | hard-coded to `FRAUD_INVESTIGATION` | `ROUTED` |
+| `REQUEST_INFORMATION` | `MANUAL_REVIEW` | `ROUTED` |
+| `CLOSE_OVERRIDE` | — | `CLOSED` |
+
+After `ROUTED` (or on an `INCOMPLETE` case), the only option left is `CLOSE` → `CLOSED`.
+
+## When `MANUAL_REVIEW` is the right choice
+
+**1. The agent already recommended it** — just use `ACCEPT_RECOMMENDATION`. This happens when:
+- No policy passed the threshold (`POLICY_ABSTAINED` → e.g. `TXN-2026-301990`)
+- Signals contradict each other (trusted device + impossible travel → `TXN-2026-730455`)
+- Evidence is missing (`TXN-MISSING-0001` → `INSUFFICIENT_EVIDENCE`)
+- Transaction looks genuinely authorised (`TXN-2026-840119` → `GENUINE_TRANSACTION`)
+
+`MANUAL_REVIEW` here means: "the agent can't responsibly classify — a human generalist must look."
+
+**2. `REQUEST_INFORMATION`** — lands at `MANUAL_REVIEW` too, but the semantics differ: you're saying *"the recommendation can't be trusted until the missing information is supplied."* Use it when the missing-info list is disqualifying — e.g. case 006 (device-signals TIMEOUT) if you think the device evidence is essential rather than acceptable.
+
+**3. As a `REROUTE` choice** — when the agent recommended an operational queue (FRAUD_INVESTIGATION, DISPUTE_OPERATIONS, PAYMENT_OPERATIONS, AML_INVESTIGATION) but you disagree it's ready for that queue — e.g. a merchant-dispute case where you suspect fraud was missed.
+
+## When to use `REROUTE` and how
+
+Use it when you **agree a queue is needed but not the one recommended** — that's its whole purpose: the reviewer isn't a rubber stamp. Concrete demo examples:
+
+- Recommendation says `DISPUTE_OPERATIONS`, but prior-dispute history shows friendly-fraud patterns → `REROUTE` → `FRAUD_INVESTIGATION`
+- Recommendation says `MANUAL_REVIEW` on an incomplete case but a policy citation and clean evidence exist → `REROUTE` → `DISPUTE_OPERATIONS`
+- Recommendation says `FRAUD_INVESTIGATION` but the screening match stands out → `REROUTE` → `AML_INVESTIGATION` (new route — it appears in the dropdown automatically)
+
+**Procedure:** Start review → pick `REROUTE` → **the Route dropdown becomes mandatory** (submitting without a route, or re-selecting the recommended route, is rejected with `selectedRoute: choose a route different from the recommended route`) → rationale ≥15 chars saying *why you're overriding the agent* → tick all three checklist boxes → Submit → `ROUTED` with your chosen queue, recorded as `reviewer`'s decision in the audit trail.
+
+**Note on `ESCALATE`:** it's a one-click `FRAUD_INVESTIGATION` — if you want AML instead, use `REROUTE → AML_INVESTIGATION`, not ESCALATE.
+
+Nothing is actioned by any of these — `ROUTED` only records which queue the human chose. That's the advisory contract.
