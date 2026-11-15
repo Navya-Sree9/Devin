@@ -1,0 +1,14 @@
+| Screen | Path | Who |
+| --- | --- | --- |
+| Sign in | /login | all |
+| Case list | /cases | all (read-only for auditor) |
+| New case (intake) | /cases/new | agent, investigator |
+| Case detail + lifecycle strip | /cases/{id} | all |
+| 1 · Investigation — plan, tool trace, follow-up chat | /cases/{id}/investigation | investigator runs it |
+| 2 · Evidence — claims vs observed, severities | /cases/{id}/evidence | all |
+| 3 · Policy citations — doc/section/chunk/score | /cases/{id}/citations | all |
+| 4 · Recommendation — classification, risk, route, rationale | /cases/{id}/recommendation | all |
+| 5 · Review — Start review → disposition form | /cases/{id}/review | reviewer only |
+| 6 · Audit — hash-chained event log | /cases/{id}/audit | reviewer, auditor |
+| Global audit trail | /audit | auditor only |
+| Policy library | /policies | shows ACTIVE vs WITHDRAWN docs |
